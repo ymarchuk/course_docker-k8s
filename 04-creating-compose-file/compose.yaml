@@ -1,0 +1,29 @@
+services:
+# -------------------- Web App -------------------
+  webapp:
+    image: python:3.12-slim
+    container_name: lesson4_python_webapp
+    working_dir: /app
+    ports:
+      - "8080:8080"
+    entrypoint: ["sh", "entrypoint.sh"]
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+    environment:
+      APP_MESSAGE: "Welcome to the Course App"
+      APP_STORE: redis
+      APP_REDIS_URL: redis://redis:6379/0
+# ------------------- Redis Service --------------
+  redis:
+    image: redis:7
+    container_name: lesson4_redis_service
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
+
