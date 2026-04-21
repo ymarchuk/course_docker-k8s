@@ -1,0 +1,47 @@
+services:
+# -------------------- Web App -------------------
+  webapp:
+    image: python:3.12-slim
+#    image: nginx:alpine
+    working_dir: /app
+    ports:
+      - "8080:8080"
+    entrypoint: ["sh", "entrypoint.sh"]
+    volumes:
+      - .:/app
+    environment:
+      APP_MESSAGE: "Welcome to the Course App"
+      APP_STORE: redis
+      APP_REDIS_URL: redis://redis:6379/0
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - webnet
+# ------------------- Redis Service --------------
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+#    healthcheck:
+#      test: ["CMD", "redis-cli", "ping"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#      start_period: 5s
+    networks:
+      - webnet
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - redis_data:/data
+#
+volumes:
+  redis_data:
+networks:
+  webnet:
+    driver: overlay
+
