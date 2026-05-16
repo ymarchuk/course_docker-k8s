@@ -1,0 +1,49 @@
+replicaCount: 3
+
+image:
+  repository: ymarchuk
+  name: goapp
+  pullPolicy: IfNotPresent
+  tag: "1.0.0"
+  containerPort: 8080
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30080
+  targetPort: 8080
+
+redis:
+  enabled: true
+  varAppStoreName: APP_STORE
+  varAppStoreValue: redis
+  varAppRedisUrlName: APP_REDIS_URL
+  varAppRedisUrlValue: redis://redis:6379/0
+
+ingress:
+  enabled: true
+  host: goapp.local
+  path: /
+  pathType: Prefix
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    scheme: HTTP
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+readinessProbe:
+  enabled: true
+  httpGet:
+    scheme: HTTP
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+  successThreshold: 1
+
