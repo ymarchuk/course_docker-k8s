@@ -1,0 +1,14 @@
+apiVersion: v2
+name: data-pipeline
+description: Event-driven data pipeline (Kafka producers + Spark consumer + MinIO)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - kafka
+  - spark
+  - minio
+  - streaming
+maintainers:
+  - name: IuriiMarchuk
+    email: marchuk.yuriy@gmail.com

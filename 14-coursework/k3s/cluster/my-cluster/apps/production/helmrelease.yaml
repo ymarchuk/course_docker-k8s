@@ -1,0 +1,43 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: data-pipeline-production
+  namespace: flux-system
+spec:
+  interval: 5m
+  targetNamespace: production
+  chart:
+    spec:
+      chart: ./charts/data-pipeline
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+  values:
+    eventProducer:
+      replicaCount: 2
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+    minio:
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "250m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
+      persistence:
+        size: 20Gi
+    ingress:
+      host: "app.local"
+      tls:
+        secretName: "app-tls"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 70

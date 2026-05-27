@@ -1,0 +1,16 @@
+eventProducer:
+  replicaCount: 1
+  resources: {}
+
+minio:
+  resources: {}
+  persistence:
+    size: 5Gi
+
+ingress:
+  host: "app.staging.local"
+  tls:
+    secretName: "app-staging-tls"
+
+autoscaling:
+  enabled: false

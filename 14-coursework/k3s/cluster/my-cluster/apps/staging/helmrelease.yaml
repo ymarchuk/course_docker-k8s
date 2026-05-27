@@ -1,0 +1,28 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: data-pipeline-staging
+  namespace: flux-system
+spec:
+  interval: 5m
+  targetNamespace: staging
+  chart:
+    spec:
+      chart: ./charts/data-pipeline
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+  valuesFrom:
+    - kind: ConfigMap
+      name: data-pipeline-staging-values
+  values:
+    eventProducer:
+      replicaCount: 1
+      resources: {}
+    ingress:
+      host: "app.staging.local"
+      tls:
+        secretName: "app-staging-tls"
+    autoscaling:
+      enabled: false
+  dependsOn: []

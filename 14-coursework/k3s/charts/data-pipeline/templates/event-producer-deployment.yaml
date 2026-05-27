@@ -1,0 +1,90 @@
+{{- if .Values.eventProducer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "data-pipeline.fullname" . }}-producer-0
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "data-pipeline.labels" . | nindent 4 }}
+    app.kubernetes.io/component: event-producer
+    node-role: "node-0"
+  annotations:
+    # Flux Image Automation marker
+    image.fluxcd.io/automated: "true"
+spec:
+  replicas: {{ .Values.eventProducer.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "data-pipeline.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: event-producer
+      node-role: "node-0"
+  template:
+    metadata:
+      labels:
+        {{- include "data-pipeline.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: event-producer
+        node-role: "node-0"
+    spec:
+      serviceAccountName: {{ include "data-pipeline.serviceAccountName" . }}
+      containers:
+        - name: event-producer
+          image: "{{ .Values.eventProducer.image.repository }}:{{ .Values.eventProducer.image.tag }}"
+          imagePullPolicy: {{ .Values.eventProducer.image.pullPolicy }}
+          env:
+            - name: NODE_ID
+              value: "node-0"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ .Values.eventProducer.env.kafkaBootstrapServers | quote }}
+            - name: KAFKA_TOPIC
+              value: {{ .Values.eventProducer.env.kafkaTopic | quote }}
+            - name: PRODUCE_INTERVAL
+              value: {{ .Values.eventProducer.env.produceInterval | quote }}
+          resources:
+            {{- toYaml .Values.eventProducer.resources | nindent 12 }}
+      {{- with .Values.eventProducer.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "data-pipeline.fullname" . }}-producer-1
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "data-pipeline.labels" . | nindent 4 }}
+    app.kubernetes.io/component: event-producer
+    node-role: "node-1"
+  annotations:
+    image.fluxcd.io/automated: "true"
+spec:
+  replicas: {{ .Values.eventProducer.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "data-pipeline.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: event-producer
+      node-role: "node-1"
+  template:
+    metadata:
+      labels:
+        {{- include "data-pipeline.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: event-producer
+        node-role: "node-1"
+    spec:
+      serviceAccountName: {{ include "data-pipeline.serviceAccountName" . }}
+      containers:
+        - name: event-producer
+          image: "{{ .Values.eventProducer.image.repository }}:{{ .Values.eventProducer.image.tag }}"
+          imagePullPolicy: {{ .Values.eventProducer.image.pullPolicy }}
+          env:
+            - name: NODE_ID
+              value: "node-1"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ .Values.eventProducer.env.kafkaBootstrapServers | quote }}
+            - name: KAFKA_TOPIC
+              value: {{ .Values.eventProducer.env.kafkaTopic | quote }}
+            - name: PRODUCE_INTERVAL
+              value: {{ .Values.eventProducer.env.produceInterval | quote }}
+          resources:
+            {{- toYaml .Values.eventProducer.resources | nindent 12 }}
+{{- end }}

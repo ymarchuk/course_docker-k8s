@@ -1,0 +1,85 @@
+# ─── Global ───────────────────────────────────────────────────
+global:
+  imageRegistry: ""
+  imagePullPolicy: IfNotPresent
+
+# ─── Event Producer ───────────────────────────────────────────
+eventProducer:
+  enabled: true
+  image:
+    repository: ghcr.io/ymarchuk/event-producer
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  env:
+    kafkaBootstrapServers: "kafka-cluster-kafka-bootstrap:9092"
+    kafkaTopic: "raw-events"
+    produceInterval: "1.0"
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# ─── Spark Consumer ───────────────────────────────────────────
+sparkConsumer:
+  enabled: true
+  image:
+    repository: ghcr.io/ymarchuk/spark-consumer
+    tag: "latest"
+  env:
+    kafkaBootstrapServers: "kafka-cluster-kafka-bootstrap:9092"
+    kafkaTopic: "raw-events"
+    minioBucket: "events"
+    checkpointPath: "s3a://events/checkpoints/kafka-to-minio"
+
+# ─── MinIO (Stateful) ─────────────────────────────────────────
+minio:
+  enabled: true
+  image:
+    repository: minio/minio
+    tag: "RELEASE.2024-01-01T00-00-00Z"
+  replicaCount: 1
+  persistence:
+    enabled: true
+    storageClass: "local-path"
+    size: 10Gi
+  service:
+    type: ClusterIP
+    port: 9000
+    consolePort: 9001
+  auth:
+    existingSecret: "minio-credentials"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  buckets:
+    - name: events
+      policy: none
+
+# ─── Ingress ──────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  host: "app.local"
+  tls:
+    enabled: true
+    secretName: "app-tls"
+
+# ─── HPA ──────────────────────────────────────────────────────
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+# ─── Service Account ──────────────────────────────────────────
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}

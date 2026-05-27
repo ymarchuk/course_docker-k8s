@@ -1,0 +1,52 @@
+# Flux Image Automation для staging
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: event-producer
+  namespace: flux-system
+spec:
+  image: ghcr.io/YOUR_GITHUB_USERNAME/event-producer
+  interval: 1m
+  secretRef:
+    name: ghcr-credentials
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: event-producer-staging
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: event-producer
+  policy:
+    semver:
+      range: ">=0.0.0-0"   # будь-який тег включно з pre-release
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImageUpdateAutomation
+metadata:
+  name: flux-system-staging
+  namespace: flux-system
+spec:
+  interval: 5m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        email: fluxcdbot@users.noreply.github.com
+        name: fluxcdbot
+      messageTemplate: |
+        [staging] Update image tags
+        {{range .Updated.Images}}
+        - {{.}}
+        {{end}}
+    push:
+      branch: main
+  update:
+    path: ./clusters/my-cluster/apps/staging
+    strategy: Setters
